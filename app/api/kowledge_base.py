@@ -1,15 +1,20 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from langchain_core.documents import Document
 
 from app.services.knowledge_base_service import KnowledgeBaseService
+from app.utils.decode_jwt import decode_jwt
 
 router = APIRouter()
 
 @router.post(
-    path="/add_collection",
+    path="/add_test_collection",
     tags=["Knowledge Base"],
-    description="Add a collection of documents to the knowledge base")
-def add_collection(api_key: str):
+    description="Add a test collection of documents to the knowledge base")
+def add_collection(api_key: str, token: str):
+    payload = decode_jwt(token)
+    if payload.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Access denied")
+
     docs = [
         Document(
             page_content="there are cats in the pond",
@@ -59,3 +64,18 @@ def add_collection(api_key: str):
         documents=docs)
 
     return {"message": "Collection added successfully"}
+
+@router.post(
+    path="/sync",
+    tags=["Knowledge Base"],
+    description="Sync the knowledge base with the mongodb database")
+def sync(api_key: str, token: str):
+    # Connect to the mongodb database and brute force find all collections,
+    # then add them to the knowledge base
+    payload = decode_jwt(token)
+    if payload.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Access denied")
+    #Todo: Implement the sync logic
+    return {"message": "Synced successfully"}
+
+

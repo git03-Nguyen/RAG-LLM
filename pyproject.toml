@@ -16,6 +16,7 @@ langchain = "^0.3.11"
 langchain-postgres = "^0.0.12"
 psycopg = {extras = ["binary"], version = "^3.2.3"}
 langchain-google-genai = "^2.0.6"
+pyjwt = {extras = ["crypto"], version = "^2.10.1"}
 
 
 [build-system]

@@ -1,7 +1,5 @@
 from fastapi import APIRouter
-from langchain_core.documents import Document
 
-from app.services.knowledge_base_service import KnowledgeBaseService
 from app.services.retriever_service import RetrieverService
 
 router = APIRouter()
@@ -16,4 +14,5 @@ def search(api_key: str, collection_name: str, query: str, k: int = 5):
         collection_name=collection_name,
         query=query,
         k=k)
+
     return {"result": result}

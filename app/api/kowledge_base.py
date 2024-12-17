@@ -2,7 +2,9 @@ from fastapi import APIRouter, HTTPException
 from langchain_core.documents import Document
 
 from app.services.knowledge_base_service import KnowledgeBaseService
+from app.services.tmdb_service import TMDBService
 from app.utils.decode_jwt import decode_jwt
+from app.utils.transform_document import transform_document
 
 router = APIRouter()
 
@@ -69,13 +71,53 @@ def add_collection(api_key: str, token: str):
     path="/sync",
     tags=["Knowledge Base"],
     description="Sync the knowledge base with the mongodb database")
-def sync(api_key: str, token: str):
-    # Connect to the mongodb database and brute force find all collections,
-    # then add them to the knowledge base
+async def sync(api_key: str, token: str):
     payload = decode_jwt(token)
     if payload.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Access denied")
-    #Todo: Implement the sync logic
+
+    tmdb_service = TMDBService()
+    tmdb_service.connect()
+
+    # Stream data in batches from all collections
+    batch_size = 200
+    for collection_name, batch in tmdb_service.stream_all_collections_data(batch_size=batch_size):
+        print(f"\nCollection: {collection_name}")
+        print(f"Batch size: {len(batch)}")
+        documents = [transform_document(doc) for doc in batch]
+        await KnowledgeBaseService.add_collection(
+            api_key=api_key,
+            collection_name=collection_name,
+            documents=documents
+        )
+
+    tmdb_service.close()
     return {"message": "Synced successfully"}
+
+@router.post(
+    path="/drop",
+    tags=["Knowledge Base"],
+    description="Drop the knowledge base")
+async def drop(api_key: str, token: str):
+    payload = decode_jwt(token)
+    if payload.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    tmdb_service = TMDBService()
+    tmdb_service.connect()
+    collection_names = tmdb_service.list_collections()
+
+    for collection_name in collection_names:
+        print("Dropping collection:", collection_name)
+        await KnowledgeBaseService.delete_collection(
+            api_key=api_key,
+            collection_name=collection_name
+        )
+
+    tmdb_service.close()
+    return {"message": "All collections dropped successfully"}
+
+
+
 
 

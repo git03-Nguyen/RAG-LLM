@@ -20,4 +20,5 @@ class VectorStore:
             collection_name=collection_name,
             connection=cls._connection,
             use_jsonb=True,
+            async_mode=True
         )

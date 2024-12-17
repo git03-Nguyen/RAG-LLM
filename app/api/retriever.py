@@ -14,5 +14,4 @@ async def search(api_key: str, collection_name: str, query: str, k: int = 5):
         collection_name=collection_name,
         query=query,
         k=k)
-
     return {"result": result}

@@ -2,6 +2,9 @@ import os
 import jwt
 from fastapi import HTTPException
 
+from app.utils.exceptions import CustomException
+
+
 def decode_jwt(token: str):
     try:
         payload = jwt.decode(
@@ -11,6 +14,12 @@ def decode_jwt(token: str):
         )
         return payload
     except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token has expired")
+        raise CustomException(
+            status=403,
+            detail="Token has expired"
+        )
     except jwt.InvalidTokenError:
-        raise HTTPException(status_code=403, detail="Invalid token")
+        raise CustomException(
+            status=403,
+            detail="Invalid token"
+        )

@@ -1,8 +1,12 @@
 import os
 import jwt
-from fastapi import APIRouter, HTTPException, Depends
+import structlog
+from fastapi import APIRouter
 from datetime import datetime, timedelta, timezone
 
+from app.models.response_model import ErrorResponse
+
+logger = structlog.get_logger()
 router = APIRouter()
 
 def create_jwt_token(role: str):
@@ -21,6 +25,18 @@ def create_jwt_token(role: str):
 
 @router.post("/", tags=["Token"], description="Create a JWT token")
 def create_token():
-    token = create_jwt_token("admin")
-    print("token: ", token)
-    return "Token created successfully!"
+    try:
+        token = create_jwt_token("admin")
+        print("Token: ", token)
+        return {
+            'status': 200,
+            'data': {
+                'message': 'Token created successfully',
+            }
+        }
+    except Exception as e:
+        logger.error("Error creating token", exc_info=e)
+        return ErrorResponse(
+            status=500,
+            detail="Error creating token"
+        )

@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 from app.models.response_model import ErrorResponse
 
-logger = structlog.get_logger()
+logger = structlog.get_logger(__name__)
 router = APIRouter()
 
 def create_jwt_token(role: str):
@@ -27,7 +27,7 @@ def create_jwt_token(role: str):
 def create_token():
     try:
         token = create_jwt_token("admin")
-        print("Token: ", token)
+        logger.info(f"Token: {token}")
         return {
             'status': 200,
             'data': {

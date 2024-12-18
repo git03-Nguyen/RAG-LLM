@@ -17,13 +17,17 @@ async def search(
         google_api_key: str,
         collection_name: str,
         query: str,
-        k: int):
+        amount: int = 25,
+        threshold: float = 0.5
+):
     try:
         result = await RetrieverService.search(
             api_key=google_api_key,
             collection_name=collection_name,
             query=query,
-            k=k)
+            k=amount,
+            score_threshold=threshold,
+        )
 
         ids = [doc.id for doc in result]
         return UserResponse(

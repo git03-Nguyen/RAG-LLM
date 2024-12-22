@@ -15,7 +15,8 @@ router = APIRouter()
     path="/sync",
     tags=["Knowledge Base"],
     description="Sync the knowledge base with the mongodb database")
-async def sync(api_key: str, token: str):
+async def sync(google_api_key: str, token: str):
+    print("Syncing knowledge base")
     payload = decode_jwt(token)
     if payload.get("role") != "admin":
         return ErrorResponse(
@@ -34,12 +35,13 @@ async def sync(api_key: str, token: str):
             print(f"Batch size: {len(batch)}")
             documents = [transform_document(doc) for doc in batch]
             await KnowledgeBaseService.add_collection(
-                api_key=api_key,
+                api_key=google_api_key,
                 collection_name=collection_name,
                 documents=documents
             )
 
         tmdb_service.close()
+        print("Synced successfully")
         return {"message": "Synced successfully"}
     except Exception as e:
         logger.error("Error syncing knowledge base", exc_info=e)
@@ -52,7 +54,7 @@ async def sync(api_key: str, token: str):
     path="/drop",
     tags=["Knowledge Base"],
     description="Drop the knowledge base")
-async def drop(api_key: str, token: str):
+async def drop(google_api_key: str, token: str):
     payload = decode_jwt(token)
     if payload.get("role") != "admin":
         return ErrorResponse(
@@ -68,7 +70,7 @@ async def drop(api_key: str, token: str):
         for collection_name in collection_names:
             print("Dropping collection:", collection_name)
             await KnowledgeBaseService.delete_collection(
-                api_key=api_key,
+                api_key=google_api_key,
                 collection_name=collection_name
             )
 

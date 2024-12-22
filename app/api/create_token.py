@@ -27,6 +27,7 @@ def create_jwt_token(role: str):
 def create_token():
     try:
         token = create_jwt_token("admin")
+        print("Token: ", token)
         logger.info(f"Token: {token}")
         return {
             'status': 200,

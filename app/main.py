@@ -2,6 +2,7 @@ import os
 import structlog
 from fastapi import FastAPI, Request
 from starlette.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import router
 from app.models.response_model import ErrorResponse
@@ -16,6 +17,15 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+)
+
+# CORS settings
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.exception_handler(Exception)
@@ -39,5 +49,9 @@ async def custom_exception_handler(request: Request, exc: CustomException):
             detail=exc.detail
         ).model_dump()
     )
+
+@app.get("/healthy", tags=["Health Check"], description="Check the health of the service")
+def healthy():
+    return {"status": "healthy"}
 
 app.include_router(router)

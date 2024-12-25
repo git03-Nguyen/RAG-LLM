@@ -18,8 +18,8 @@ def create_jwt_token(role: str):
     }
     token = jwt.encode(
         payload=payload,
-        key=os.getenv("SECRET_KEY"),
-        algorithm=os.getenv("ALGORITHM")
+        key=os.getenv('SECRET_KEY'),
+        algorithm=os.getenv('ALGORITHM')
     )
     return token
 

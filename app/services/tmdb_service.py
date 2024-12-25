@@ -15,10 +15,16 @@ class TMDBService:
     def __init__(self):
         if not hasattr(self, "_initialized"):  # Prevent reinitialization
             self._initialized = True
-            self._uri = os.getenv("MONGODB_URI")  # Fixed MongoDB URI
-            self._database_name = os.getenv("MONGODB_DB")  # Fixed database name
+            self._uri = os.getenv('MONGODB_URI')  # Fixed MongoDB URI
+            self._database_name =os.getenv('MONGODB_DB')  # Fixed database name
             self.client = None
             self.db = None
+
+            # Handle crash
+            self._error_sync = False
+            self._current_last_id = None
+            self._current_collection = None
+
 
     def connect(self):
         try:
@@ -78,6 +84,10 @@ class TMDBService:
         collection = self.get_collection(collection_name)
 
         last_id = None  # Start with no last_id
+        if self._error_sync:
+            last_id = self._current_last_id
+            self._clear_error_sync()
+
         try:
             while True:
                 query = {}
@@ -94,6 +104,7 @@ class TMDBService:
 
                 # Update last_id to the _id of the last document in the batch
                 last_id = batch[-1]["_id"]
+                self._current_last_id = last_id
         except PyMongoError as e:
             print(f"Error while fetching documents: {e}")
 
@@ -111,8 +122,15 @@ class TMDBService:
             raise RuntimeError("Database connection is not initialized. Call 'connect()' first.")
 
         collections = self.list_collections()
+
+        if self._error_sync:
+            if self._current_collection in collections:
+                start_index = collections.index(self._current_collection)
+                collections = collections[start_index:]
+
         for collection_name in collections:
             print(f"Streaming data from collection: {collection_name}")
+            self._current_collection = collection_name
             for batch in self.fetch_collection_in_batches(collection_name, batch_size=batch_size):
                 yield collection_name, batch
 
@@ -121,4 +139,12 @@ class TMDBService:
             self.client.close()
             self.client = None
             self.db = None
+            self._current_last_id = None
+            self._current_collection = None
             print("Database connection closed.")
+
+    def raise_error_sync(self):
+        self._error_sync = True
+
+    def _clear_error_sync(self):
+        self._error_sync = False

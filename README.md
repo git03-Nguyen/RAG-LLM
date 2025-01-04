@@ -91,12 +91,9 @@ structlog.configure(
 - **GET /retriever/:** Retrieve related movies by query in given collection
     - **gemini_api_key:** Gemini API key (Use gemini model to embed the data)
     - **collection:** Collection name in knowledge base (Search in this collection)
-    - **query:** Query to search related movies (Retrieve related movies by this query. 
-  Remember: It does not use LLM to understand meaning of query. It just uses search query by using vector database 
-  to find vectors that are most similar to a query vector)
+    - **query:** Query to search related movies (Retrieve related movies by this query.
     - **amount:** Amount of related movies to retrieve
     - **threshold:** Threshold to filter the related movies
-
 ### APIs manage knowledge base (Should be used by admin)
 - **POST /create-token/:** Create token to access knowledge base (Print out in console and log file)
 - **POST /knowledge-base/sync:** Sync knowledge base with the given collection
@@ -110,4 +107,6 @@ structlog.configure(
   - **max_retries:** Max retries to sync knowledge base
 - **POST /knowledge-base/drop:** Drop the all collections in knowledge base
   - **gemini_api_key:** Gemini API key (Use gemini model to embed the data) 
-  - **token:** Token to access knowledge base
+  - **token:** Token to access1 knowledge base
+
+**Remember:** The system does not use an LLM to understand the meaning of the query. It simply uses the search query with a vector database to find vectors that are most similar to the query vector.

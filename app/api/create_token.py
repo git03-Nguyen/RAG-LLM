@@ -4,7 +4,8 @@ import structlog
 from fastapi import APIRouter
 from datetime import datetime, timedelta, timezone
 
-from app.models.response_model import ErrorResponse
+from app.models.response_model import ErrorResponse, Response
+from app.utils.exceptions import CustomHTTPException
 
 logger = structlog.get_logger(__name__)
 router = APIRouter()
@@ -29,15 +30,17 @@ def create_token():
         token = create_jwt_token("admin")
         print("Token: ", token)
         logger.info(f"Token: {token}")
-        return {
-            'status': 200,
-            'data': {
-                'message': 'Token created successfully',
-            }
-        }
+        return Response(
+            status=200,
+            data={'message': 'Token created successfully'}
+        )
+
     except Exception as e:
         logger.error("Error creating token", exc_info=e)
-        return ErrorResponse(
-            status=500,
-            detail="Error creating token"
+        raise CustomHTTPException(
+            status_code=500,
+            detail=ErrorResponse(
+                status=500,
+                message="Error creating token"
+            ).model_dump()
         )

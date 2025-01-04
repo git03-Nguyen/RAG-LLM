@@ -1,8 +1,10 @@
 import structlog
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
-from app.models.response_model import ErrorResponse, RAGResponse
+from app.models.request_model import RAGRequest
+from app.models.response_model import ErrorResponse, Response
 from app.services.rag_service import ask_question
+from app.utils.exceptions import CustomHTTPException
 
 logger = structlog.get_logger(__name__)
 router = APIRouter()
@@ -12,23 +14,25 @@ router = APIRouter()
     tags=["RAG"],
     description="Ask question related to the knowledge base")
 async def chat(
-        google_api_key:str,
-        collection_name: str,
-        query: str
+    request: RAGRequest = Depends()
 ):
     try:
         result = await ask_question(
-            api_key=google_api_key,
-            collection_name=collection_name,
-            question=query
+            api_key=request.gemini_api_key,
+            collection_name=request.collection_name,
+            question=request.query
         )
-        return RAGResponse(
+        return Response(
             status=200,
             data={"result": result}
         )
     except Exception as e:
         logger.error("Error asking question", exc_info=e)
-        return ErrorResponse(
-            status=500,
-            detail="Call retriever service failed"
+        raise CustomHTTPException(
+            status_code=500,
+            detail=ErrorResponse(
+                status=500,
+                message="Call retriever service failed"
+            ).
+            model_dump()
         )

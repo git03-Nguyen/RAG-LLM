@@ -1,8 +1,8 @@
 import os
 import jwt
-from fastapi import HTTPException
 
-from app.utils.exceptions import CustomException
+from app.models.response_model import ErrorResponse
+from app.utils.exceptions import CustomHTTPException
 
 
 def decode_jwt(token: str):
@@ -14,12 +14,18 @@ def decode_jwt(token: str):
         )
         return payload
     except jwt.ExpiredSignatureError:
-        raise CustomException(
-            status=403,
-            detail="Token has expired"
+        raise CustomHTTPException(
+            status_code=403,
+            detail=ErrorResponse(
+                status=403,
+                message="Token has expired"
+            ).model_dump()
         )
     except jwt.InvalidTokenError:
-        raise CustomException(
-            status=403,
-            detail="Invalid token"
+        raise CustomHTTPException(
+            status_code=403,
+            detail=ErrorResponse(
+                status=403,
+                message="Invalid token"
+            ).model_dump()
         )

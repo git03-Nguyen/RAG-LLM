@@ -1,10 +1,12 @@
 import structlog
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
-from app.models.response_model import ErrorResponse
+from app.models.request_model import SyncWithAutoRetryRequest, KnowledgeRequest
+from app.models.response_model import ErrorResponse, Response
 from app.services.knowledge_base_service import KnowledgeBaseService
 from app.services.tmdb_service import TMDBService
 from app.utils.decode_jwt import decode_jwt
+from app.utils.exceptions import CustomHTTPException
 from app.utils.transform_document import transform_document
 
 logger = structlog.get_logger(__name__)
@@ -27,97 +29,149 @@ async def logic_sync(tmdb_service: TMDBService, google_api_key: str):
 
     tmdb_service.close()
     print("Synced successfully")
-    return {
-        "status": 200,
-        "message": "Synced successfully"
-    }
+    return Response(
+        status=200,
+        data={"message": "Synced successfully"}
+    )
 
 @router.post(
     path="/sync",
     tags=["Knowledge Base"],
     description="Sync the knowledge base with the mongodb database")
-async def sync(google_api_key: str, token: str):
+async def sync(request: KnowledgeRequest = Depends()):
     print("Syncing knowledge base")
-    payload = decode_jwt(token)
+    payload = decode_jwt(request.token)
     if payload.get("role") != "admin":
-        return ErrorResponse(
-            status=403,
-            detail="Access denied"
+        raise CustomHTTPException(
+            status_code=403,
+            detail=ErrorResponse(
+                status=403,
+                message="Access denied"
+            ).model_dump()
         )
 
     tmdb_service = TMDBService()
 
     try:
-        return await logic_sync(tmdb_service, google_api_key)
+        return await logic_sync(tmdb_service, request.gemini_api_key)
     except Exception as e:
         tmdb_service.raise_error_sync()
         logger.error("Error syncing knowledge base", exc_info=e)
-        return ErrorResponse(
-            status=500,
-            detail="Error syncing knowledge base"
+        raise CustomHTTPException(
+            status_code=500,
+            detail=ErrorResponse(
+                status=500,
+                message="Error syncing knowledge base").model_dump()
         )
+    finally:
+        tmdb_service.close()
 
 @router.post(path="/sync-with-auto-retry",
     tags=["Knowledge Base"],
-    description="Sync the knowledge base with the mongodb database with auto retry")
-async def sync_with_auto_retry(google_api_key: str, token: str, retry_count: int = 0, max_retries: int = 50):
-    print(f"Syncing knowledge base (Attempt {retry_count + 1})")
-    payload = decode_jwt(token)
+        description="Sync the knowledge base with the mongodb database with auto retry")
+async def sync_with_auto_retry(request: SyncWithAutoRetryRequest = Depends()):
+    print(f"Syncing knowledge base (Attempt {request.retry_count + 1})")
+    payload = decode_jwt(request.token)
     if payload.get("role") != "admin":
-        return ErrorResponse(
-            status=403,
-            detail="Access denied"
+        raise CustomHTTPException(
+            status_code=403,
+            detail=ErrorResponse(
+                status=403,
+                message="Access denied"
+            ).model_dump()
         )
 
     tmdb_service = TMDBService()
 
     try:
-        return await logic_sync(tmdb_service, google_api_key)
+        return await logic_sync(tmdb_service, request.gemini_api_key)
     except Exception as e:
         tmdb_service.raise_error_sync()
-        logger.error(f"Error syncing knowledge base (Attempt {retry_count + 1})", exc_info=e)
+        logger.error(f"Error syncing knowledge base (Attempt {request.retry_count + 1})", exc_info=e)
 
         # Retry logic
-        if retry_count < max_retries:
-            return sync_with_auto_retry(google_api_key, token, retry_count=retry_count + 1, max_retries=max_retries)
+        if request.retry_count < request.max_retries:
+            return sync_with_auto_retry(
+                gemini_api_key = request.gemini_api_key,
+                token = request.token,
+                retry_count = request.retry_count + 1,
+                max_retries=request.max_retries)
         else:
-            return ErrorResponse(
-                status=500,
-                detail="Error syncing knowledge base after multiple attempts"
+            raise CustomHTTPException(
+                status_code=500,
+                detail=ErrorResponse(
+                    status=500,
+                    message="Error syncing knowledge base after multiple attempts"
+                ).model_dump()
             )
+    finally:
+        tmdb_service.close()
 
 @router.post(
     path="/drop",
     tags=["Knowledge Base"],
     description="Drop the knowledge base")
-async def drop(google_api_key: str, token: str):
-    payload = decode_jwt(token)
+async def drop(request: KnowledgeRequest = Depends()):
+    payload = decode_jwt(request.token)
     if payload.get("role") != "admin":
-        return ErrorResponse(
-            status=403,
-            detail="Access denied"
+        raise CustomHTTPException(
+            status_code=403,
+            detail=ErrorResponse(
+                status=403,
+                message="Access denied"
+            ).model_dump()
         )
 
+    tmdb_service = TMDBService()
     try:
-        tmdb_service = TMDBService()
         tmdb_service.connect()
         collection_names = tmdb_service.list_collections()
 
         for collection_name in collection_names:
             print("Dropping collection:", collection_name)
             await KnowledgeBaseService.delete_collection(
-                api_key=google_api_key,
+                api_key=request.gemini_api_key,
                 collection_name=collection_name
             )
 
         tmdb_service.close()
-        return {
-            "status": 200,
-            "message": "All collections dropped successfully"
-        }
+        return Response(
+            status=200,
+            data={"message": "All collections dropped successfully"}
+        )
     except Exception as e:
         logger.error("Error dropping knowledge base", exc_info=e)
-        return ErrorResponse(
+        raise CustomHTTPException(
+            status_code=500,
+            detail=ErrorResponse(
             status=500,
-            detail="Error dropping knowledge base"
+            message="Error dropping knowledge base"
+            ).model_dump()
         )
+    finally:
+        tmdb_service.close()
+
+@router.get(
+    path="/collections",
+    tags=["Knowledge Base"],
+    description="List all collections in the knowledge base")
+def list_collections():
+    tmdb_service = TMDBService()
+    try:
+        tmdb_service.connect()
+        collection_names = tmdb_service.list_collections()
+        return Response(
+            status=200,
+            data={"result": collection_names}
+        )
+    except Exception as e:
+        logger.error("Error listing collections", exc_info=e)
+        raise CustomHTTPException(
+            status_code=500,
+            detail=ErrorResponse(
+                status=500,
+                message="Error listing collections"
+            ).model_dump()
+        )
+    finally:
+        tmdb_service.close()

@@ -1,10 +1,10 @@
-from sys import exc_info
-
 import structlog
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
-from app.models.response_model import UserResponse, ErrorResponse
+from app.models.request_model import RetrieverRequest
+from app.models.response_model import Response, ErrorResponse
 from app.services.retriever_service import RetrieverService
+from app.utils.exceptions import CustomHTTPException
 
 logger = structlog.getLogger(__name__)
 router = APIRouter()
@@ -14,30 +14,29 @@ router = APIRouter()
     tags=["Retriever"],
     description="Search the knowledge base for documents")
 async def search(
-        google_api_key: str,
-        collection_name: str,
-        query: str,
-        amount: int = 25,
-        threshold: float = 0.5
+    request: RetrieverRequest = Depends()
 ):
     try:
         result = await RetrieverService.search(
-            api_key=google_api_key,
-            collection_name=collection_name,
-            query=query,
-            k=amount,
-            score_threshold=threshold,
+            api_key=request.gemini_api_key,
+            collection_name=request.collection_name,
+            query=request.query,
+            k=request.amount,
+            score_threshold=request.threshold,
         )
 
         ids = [doc.id for doc in result]
-        return UserResponse(
+        return Response(
             status=200,
             data={"result": ids}
         )
     except Exception as e:
-        logger.error(f"Error searching collection: {collection_name} "
-                     f"with query: {query}", exc_info=e)
-        return ErrorResponse(
-            status=500,
-            detail="Error searching collection"
+        logger.error(f"Error searching collection: {request.collection_name} "
+                     f"with query: {request.query}", exc_info=e)
+        raise CustomHTTPException(
+            status_code=500,
+            detail=ErrorResponse(
+                status=500,
+                message="Error searching collection"
+            ).model_dump()
         )

@@ -1,8 +1,10 @@
 import os
+import structlog
 
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 
+logger = structlog.get_logger()
 
 class TMDBService:
     _instance = None
@@ -25,7 +27,6 @@ class TMDBService:
             self._current_last_id = None
             self._current_collection = None
 
-
     def connect(self):
         try:
             if self.client is None:
@@ -33,8 +34,8 @@ class TMDBService:
                 self.db = self.client[self._database_name]
                 print(f"Connected to database: {self._database_name}")
         except PyMongoError as e:
-            print(f"Error connecting to MongoDB: {e}")
-            raise
+            logger.error(f"Error connecting to MongoDB: {e}")
+            raise e
 
     def list_collections(self):
         if self.db is None:
@@ -106,7 +107,8 @@ class TMDBService:
                 last_id = batch[-1]["_id"]
                 self._current_last_id = last_id
         except PyMongoError as e:
-            print(f"Error while fetching documents: {e}")
+            logger.error(f"Error while fetching documents: {e}")
+            raise e
 
     def stream_all_collections_data(self, batch_size: int = 100):
         """

@@ -5,8 +5,8 @@ from starlette.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import router
-from app.models.response_model import ErrorResponse
-from app.utils.exceptions import CustomException
+from app.models.response_model import ErrorResponse, Response
+from app.utils.exceptions import CustomHTTPException
 
 logger = structlog.get_logger(__name__)
 app = FastAPI(
@@ -32,26 +32,27 @@ app.add_middleware(
 async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
     return JSONResponse(
-        status_code=200,
-        content=ErrorResponse(
-            status=500,
-            detail="An internal server error occurred."
-        ).model_dump()
+        status_code=500,
+        content={
+            "detail": ErrorResponse(
+                status=500,
+                message="An internal server error occurred"
+            ).model_dump()
+        }
     )
 
-@app.exception_handler(CustomException)
-async def custom_exception_handler(request: Request, exc: CustomException):
-    logger.error(f"Custom exception: {exc.detail}", exc_info=exc)
+@app.exception_handler(CustomHTTPException)
+async def my_custom_exception_handler(request: Request, exc: CustomHTTPException):
     return JSONResponse(
-        status_code=200,
-        content=ErrorResponse(
-            status=exc.status,
-            detail=exc.detail
-        ).model_dump()
+        status_code=exc.status_code,
+        content=exc.detail,
     )
 
 @app.get("/healthy", tags=["Health Check"], description="Check the health of the service")
 def healthy():
-    return {"status": "healthy"}
+    return Response(
+        status=200,
+        data={"message": "Service is healthy"}
+    )
 
 app.include_router(router)

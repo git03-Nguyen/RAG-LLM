@@ -2,7 +2,8 @@ import os
 from langchain_postgres.vectorstores import PGVector
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from pydantic import SecretStr
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy import select, Column, String, UUID, MetaData, Table
 
 
 class VectorStore:
@@ -17,6 +18,11 @@ class VectorStore:
         pool_recycle=-1,  # Number of seconds after which to recycle a connection
     )
 
+    _collection_metadata = MetaData()
+    _langchain_pg_collection = Table('langchain_pg_collection', _collection_metadata,
+                                    Column('uuid', UUID, primary_key=True),
+                                    Column('name', String))
+
     @classmethod
     def get_vector_store(cls, api_key: str, collection_name: str) -> PGVector:
         embeddings = GoogleGenerativeAIEmbeddings(
@@ -30,3 +36,13 @@ class VectorStore:
             use_jsonb=True,
             async_mode=True
         )
+
+    @classmethod
+    async def get_embedded_collection_names(cls):
+        async with AsyncSession(bind=cls._engine) as session:
+            async with session.begin():
+                # Use the select statement with the defined table
+                stmt = select(cls._langchain_pg_collection.c.name)  # Fetch only the 'name' column
+                result = await session.execute(stmt)
+                records = result.scalars().all()  # Fetch all records as a list
+                return records

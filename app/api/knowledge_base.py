@@ -122,10 +122,8 @@ async def drop(request: KnowledgeRequest = Depends()):
             ).model_dump()
         )
 
-    tmdb_service = TMDBService()
     try:
-        tmdb_service.connect()
-        collection_names = tmdb_service.list_collections()
+        collection_names = await KnowledgeBaseService.get_embedded_collection_names()
 
         for collection_name in collection_names:
             print("Dropping collection:", collection_name)
@@ -134,7 +132,6 @@ async def drop(request: KnowledgeRequest = Depends()):
                 collection_name=collection_name
             )
 
-        tmdb_service.close()
         return Response(
             status=200,
             data={"message": "All collections dropped successfully"}
@@ -148,18 +145,14 @@ async def drop(request: KnowledgeRequest = Depends()):
             message="Error dropping knowledge base"
             ).model_dump()
         )
-    finally:
-        tmdb_service.close()
 
 @router.get(
     path="/collections",
     tags=["Knowledge Base"],
     description="List all collections in the knowledge base")
-def list_collections():
-    tmdb_service = TMDBService()
+async def list_collections():
     try:
-        tmdb_service.connect()
-        collection_names = tmdb_service.list_collections()
+        collection_names = await KnowledgeBaseService.get_embedded_collection_names()
         return Response(
             status=200,
             data={"result": collection_names}
@@ -173,5 +166,3 @@ def list_collections():
                 message="Error listing collections"
             ).model_dump()
         )
-    finally:
-        tmdb_service.close()

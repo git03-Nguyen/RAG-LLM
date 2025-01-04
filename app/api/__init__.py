@@ -9,7 +9,7 @@ router = APIRouter()
 
 router.include_router(
     knowledge_base_router,
-    prefix="/knowledge_base",
+    prefix="/knowledge-base",
     tags=["Knowledge Base"]
 )
 
@@ -27,6 +27,6 @@ router.include_router(
 
 router.include_router(
     create_token_router,
-    prefix="/create_token",
+    prefix="/create-token",
     tags=["Token"]
 )

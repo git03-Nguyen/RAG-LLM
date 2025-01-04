@@ -18,11 +18,13 @@ class KnowledgeBaseService:
         ]
         await store.aadd_documents(documents, ids=ids)
 
-
-
     @classmethod
     async def delete_collection(cls, api_key: str, collection_name: str):
         store = VectorStore.get_vector_store(
             api_key=api_key,
             collection_name=collection_name)
         await store.adelete_collection()
+
+    @classmethod
+    async def get_embedded_collection_names(cls):
+        return await VectorStore.get_embedded_collection_names()

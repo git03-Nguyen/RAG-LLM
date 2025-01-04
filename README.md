@@ -91,7 +91,7 @@ structlog.configure(
 - **GET /retriever/:** Retrieve related movies by query in given collection
     - **gemini_api_key:** Gemini API key (Use gemini model to embed the data)
     - **collection:** Collection name in knowledge base (Search in this collection)
-    - **query:** Query to search related movies (Retrieve related movies by this query.
+    - **query:** Query to search related movies (Retrieve related movies by this query)
     - **amount:** Amount of related movies to retrieve
     - **threshold:** Threshold to filter the related movies
 ### APIs manage knowledge base (Should be used by admin)

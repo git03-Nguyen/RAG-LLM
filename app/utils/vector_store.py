@@ -1,9 +1,9 @@
 import os
 from langchain_postgres.vectorstores import PGVector
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from pydantic import SecretStr
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy import select, Column, String, UUID, MetaData, Table
+
+from app.services.model_service import ModelService
 
 
 class VectorStore:
@@ -25,9 +25,7 @@ class VectorStore:
 
     @classmethod
     def get_vector_store(cls, api_key: str, collection_name: str) -> PGVector:
-        embeddings = GoogleGenerativeAIEmbeddings(
-            model="models/text-embedding-004",
-            google_api_key=SecretStr(api_key))
+        embeddings = ModelService.get_llm_embeddings(llm_api_key=api_key)
 
         return PGVector(
             embeddings=embeddings,

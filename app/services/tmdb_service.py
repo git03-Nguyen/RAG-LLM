@@ -4,7 +4,7 @@ import structlog
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 
-logger = structlog.get_logger()
+logger = structlog.get_logger(__name__)
 
 class TMDBService:
     _instance = None

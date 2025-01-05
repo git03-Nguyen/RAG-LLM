@@ -1,11 +1,11 @@
 from pydantic import BaseModel, field_validator, Field
 
 class KnowledgeRequest(BaseModel):
-    gemini_api_key: str = Field(
+    llm_api_key: str = Field(
         ...,
-        max_length=50,
+        max_length=250,
         min_length=1,
-        description="Gemini API key",
+        description="LLM API key",
         examples=["AIzaSyD1q"])
     token: str = Field(
         ...,
@@ -37,10 +37,10 @@ class SyncWithAutoRetryRequest(KnowledgeRequest):
         return retry_count
 
 class AdminRequest(BaseModel):
-    gemini_api_key: str = Field(
-        max_length=50,
+    llm_api_key: str = Field(
+        max_length=250,
         min_length=1,
-        description="Gemini API key",
+        description="LLM API key",
         examples=["AIzaSyD1q"]
     )
 
@@ -52,10 +52,10 @@ class AdminRequest(BaseModel):
     )
 
 class RetrieverRequest(BaseModel):
-    gemini_api_key: str = Field(
-        max_length=50,
+    llm_api_key: str = Field(
+        max_length=250,
         min_length=1,
-        description="Gemini API key",
+        description="LLM API key",
         examples=["AIzaSyD1q"]
     )
     collection_name: str = Field(
@@ -65,7 +65,7 @@ class RetrieverRequest(BaseModel):
         examples=["my_collection"]
     )
     query: str = Field(
-        max_length=250,
+        max_length=5000,
         min_length=1,
         description="Query string",
         examples=["Suggest scientific films"])
@@ -84,10 +84,10 @@ class RetrieverRequest(BaseModel):
     )
 
 class RAGRequest(BaseModel):
-    gemini_api_key: str = Field(
-        max_length=50,
+    llm_api_key: str = Field(
+        max_length=250,
         min_length=1,
-        description="Gemini API key",
+        description="LLM API key",
         examples=["AIzaSyD1q"]
     )
     collection_name: str = Field(
@@ -101,4 +101,18 @@ class RAGRequest(BaseModel):
         min_length=1,
         description="Query string",
         examples=["Suggest scientific films"]
+    )
+
+class NavigationRequest(BaseModel):
+    llm_api_key: str = Field(
+        max_length=250,
+        min_length=1,
+        description="LLM API key",
+        examples=["AIzaSyD1q"]
+    )
+    query: str = Field(
+        max_length=250,
+        min_length=1,
+        description="Query string",
+        examples=["Casts of Moana"]
     )

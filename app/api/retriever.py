@@ -1,8 +1,8 @@
 import structlog
 from fastapi import APIRouter, Depends
 
-from app.models.request_model import RetrieverRequest
-from app.models.response_model import Response, ErrorResponse
+from app.models.request_models import RetrieverRequest
+from app.models.response_models import Response, ErrorResponse
 from app.services.retriever_service import RetrieverService
 from app.utils.exceptions import CustomHTTPException
 
@@ -18,7 +18,7 @@ async def search(
 ):
     try:
         result = await RetrieverService.search(
-            api_key=request.gemini_api_key,
+            api_key=request.llm_api_key,
             collection_name=request.collection_name,
             query=request.query,
             k=request.amount,

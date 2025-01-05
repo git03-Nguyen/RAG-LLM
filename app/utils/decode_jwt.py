@@ -1,7 +1,7 @@
 import os
 import jwt
 
-from app.models.response_model import ErrorResponse
+from app.models.response_models import ErrorResponse
 from app.utils.exceptions import CustomHTTPException
 
 

@@ -5,7 +5,7 @@ from starlette.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import router
-from app.models.response_model import ErrorResponse, Response
+from app.models.response_models import ErrorResponse, Response
 from app.utils.exceptions import CustomHTTPException
 
 logger = structlog.get_logger(__name__)

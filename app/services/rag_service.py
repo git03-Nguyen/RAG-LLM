@@ -1,11 +1,10 @@
 from langchain import hub
 from langchain_core.documents import Document
 from langchain_core.messages import trim_messages
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langgraph.graph import START, StateGraph
 from typing_extensions import List, TypedDict
 
-from app.services.model_service import get_gemini_model
+from app.services.model_service import ModelService
 from app.utils.vector_store import VectorStore
 
 # Define prompt for question-answering
@@ -31,7 +30,7 @@ def build_rag_graph(api_key: str, collection_name: str):
     async def generate(state: State):
         docs_content = "\n\n".join(doc.page_content for doc in state["context"])
         messages = prompt.invoke({"question": state["question"], "context": docs_content})
-        model = get_gemini_model(google_api_key=api_key)
+        model = ModelService.get_llm_model(llm_api_key=api_key)
         trim_messages(
             messages,
             max_tokens=1000,

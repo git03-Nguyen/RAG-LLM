@@ -18,10 +18,6 @@ async def logic_sync(tmdb_service: TMDBService, llm_api_key: str):
     # Stream data in batches from all collections
     batch_size = 200
     for collection_name, batch in tmdb_service.stream_all_collections_data(batch_size=batch_size):
-        # Skip if batch is empty or does not have tmdb_id
-        if len(batch) == 0 or 'tmdb_id' not in batch[0]:
-            continue
-
         print(f"\nCollection: {collection_name}")
         print(f"Batch size: {len(batch)}")
 
@@ -97,10 +93,13 @@ async def sync_with_auto_retry(request: SyncWithAutoRetryRequest = Depends()):
         # Retry logic
         if request.retry_count < request.max_retries:
             return sync_with_auto_retry(
-                llm_api_key = request.llm_api_key,
-                token = request.token,
-                retry_count = request.retry_count + 1,
-                max_retries=request.max_retries)
+                SyncWithAutoRetryRequest(
+                    llm_api_key= request.llm_api_key,
+                    token = request.token,
+                    retry_count = request.retry_count + 1,
+                    max_retries=request.max_retries
+                )
+            )
         else:
             raise CustomHTTPException(
                 status_code=500,

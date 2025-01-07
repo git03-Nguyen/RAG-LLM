@@ -192,8 +192,8 @@ def build_graph(llm_api_key: str):
         print(f"[query_movies] {query}")
         try:
             collection = db["movies"]
-            documents = collection.find(query, {"_id": 1}).limit(MAX_ROWS)
-            return [str(doc["_id"]) for doc in documents]
+            documents = collection.find(query, {"tmdb_id": 1}).limit(MAX_ROWS)
+            return [str(doc["tmdb_id"]) for doc in documents]
         except Exception as e:
             print(f"Error querying 'movies': {e}")
             return None
@@ -202,8 +202,8 @@ def build_graph(llm_api_key: str):
         print(f"[query_genres] {query}")
         try:
             collection = db["movie_genres"]
-            documents = collection.find(query, {"_id": 1}).limit(MAX_ROWS)
-            return [str(doc["_id"]) for doc in documents]
+            documents = collection.find(query, {"tmdb_id": 1}).limit(MAX_ROWS)
+            return [str(doc["tmdb_id"]) for doc in documents]
         except Exception as e:
             print(f"Error querying 'movie_genres': {e}")
             return None

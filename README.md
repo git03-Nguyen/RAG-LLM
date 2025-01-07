@@ -1,14 +1,16 @@
-# RAG-LLM
+# RAG-LLM v0.3
 ## Introduction
 This repository contains the python code to store knowledge base and retrieve related movies by query.
-This is v0.2 of the project. The project is built on top of FastAPI.
+This is v0.3 of the project. The project is built on top of FastAPI.
 ### Main features
 - **Knowledge Base API:** Manage the knowledge base (sync, drop, collections).
 - **Retriever API:** Retrieve related movies by query in given collection.
 - **Navigation API:** Return type of route and params to navigate the web by query.
 ### New updates
 - You can select Gemini model or OpenAI model by changing ```USE_GEMINI=TRUE``` in .env file.
-- New feature: Navigate the web by query.
+- New feature: 
+  - Navigate the web by query.
+  - Change use tmdb_id instead of _id (mongodb) in response of retriever API and navigation API.
 ## Container Setup
 1. Clone the repository.
 2. Create .env file from .env.example (at the same level of .env.example).
@@ -126,9 +128,8 @@ structlog.configure(
 **Remember:** 
 - The system does not use an LLM to understand the meaning of the query. 
 It simply uses the search query with a vector database to find vectors that are most similar to the query vector.
-- ID in response of retriever API is the _id of object in TMDB database (```_id = ObjectId(67556a930eac33604a69f72c)```). 
-You can use this id to get more information about the movie by querying to mongodb. 
-In hosted server, rag-llm service uses database of volunteer team. The id maybe different from the _id in your database.
+- ID in response of retriever API is the tmdb_id of object in TMDB database (```tmdb_id = 23234```). 
+You can use this id to get more information about the movie by querying to mongodb.
 
 ## More about knowledge store and retrieve API
 ### Understanding the knowledge store and retrieve API
@@ -181,11 +182,11 @@ Has the type PageEnum that is an one of the following strings
     "route": "CAST_PAGE",
     "params": {
       "movie_ids": [
-        "67556a930eac33604a69f734",
-        "67556a930eac33604a69f744",
-        "67556a960eac33604a69f7ba",
-        "67556a970eac33604a69f80b",
-        "67556b4b0eac33604a6a1afd"
+        "76600",
+        "1072790",
+        "327317",
+        "11426",
+        "37768"
       ]
     },
     "metadata": {

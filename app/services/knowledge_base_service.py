@@ -13,7 +13,7 @@ class KnowledgeBaseService:
 
         # Safely extract '_id' or generate fallback IDs
         ids = [
-            doc.metadata["_id"] if "_id" in doc.metadata else str(uuid.uuid4())
+            doc.metadata["tmdb_id"] if "tmdb_id" in doc.metadata else str(uuid.uuid4())
             for doc in documents
         ]
         await store.aadd_documents(documents, ids=ids)

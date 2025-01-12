@@ -9,6 +9,7 @@ WORKDIR /app
 
 # Copy only dependencies
 COPY pyproject.toml poetry.lock* ./
+COPY ./README.md ./
 
 # Install all dependencies
 RUN poetry config virtualenvs.create false \

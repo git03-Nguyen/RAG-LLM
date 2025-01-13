@@ -33,7 +33,7 @@ def build_rag_graph(api_key: str, collection_name: str):
         model = ModelService.get_llm_model(llm_api_key=api_key)
         trim_messages(
             messages,
-            max_tokens=1000,
+            max_tokens=3000,
             strategy="last",
             token_counter=model,
             include_system=True,

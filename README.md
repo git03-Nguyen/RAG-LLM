@@ -1,14 +1,17 @@
-# RAG-LLM v0.2
+# RAG-LLM v0.3
 ## Introduction
 This repository contains the python code to store knowledge base and retrieve related movies by query.
-This is v0.2 of the project. The project is built on top of FastAPI.
+This is v0.3 of the project. The project is built on top of FastAPI.
 ### Main features
 - **Knowledge Base API:** Manage the knowledge base (sync, drop, collections).
 - **Retriever API:** Retrieve related movies by query in given collection.
+- **RAG API:** Using LLM adn related docs retrieved from knowledge base to generate response.
 - **Navigation API:** Return type of route and params to navigate the web by query.
 ### New updates
 - You can select Gemini model or OpenAI model by changing ```USE_GEMINI=TRUE``` in .env file.
-- New feature: Navigate the web by query.
+- New features: 
+  - Navigate the web by query. (Consuming a lot of tokens to analysis query and generate best answer for you).
+  - RAG API. (Consuming tokens than navigate API).
 ## Container Setup
 1. Clone the repository.
 2. Create .env file from .env.example (at the same level of .env.example).
@@ -98,14 +101,18 @@ structlog.configure(
 - **GET /healthy:** Check the health of the service.
 - **GET /knowledge_base/collections:** Get all collections in knowledge base.
 - **GET /retriever/:** Retrieve related movies by query in given collection
-    - **llm_api_key:** LLM API key (Use gemini model as default to embed the data. 
+    - **llm_api_key:** LLM API key (Use gemini model as default to embed the data). 
   If you want to use OpenAI model, please set ```USE_GEMINI=FALSE``` in .env file).
     - **collection:** Collection name in knowledge base (Search in this collection).
     - **query:** Query to search related movies (Retrieve related movies by this query).
     - **amount:** Amount of related movies to retrieve.
     - **threshold:** Threshold to filter the related movies.
+- **POST /rag/:** Using LLM adn related docs retrieved from knowledge base to generate response
+    - **llm_api_key:** LLM API key (Use gemini model as LLM to analysis query and generate the best answer).
+    - **collection:** Collection name in knowledge base (Search in this collection).
+    - **query:** Query to ask LLM about the movie that you want to watch.
 - **GET /navigate/:** Return type of route and params to navigate the web by query
-    - **llm_api_key:** LLM API key (Use gemini model as default to embed the data. 
+    - **llm_api_key:** LLM API key (Use gemini model as LLM to analysis query and generate the best answer). 
   If you want to use OpenAI model, please set ```USE_GEMINI=FALSE``` in .env file).
     - **query:** Prompt to navigate the web.
 ### APIs manage knowledge base (Should be used by admin)
@@ -229,5 +236,17 @@ Has the type PageEnum that is an one of the following strings
     "metadata": null
   },
   "is_success": true
+}
+```
+
+## Example about RAG API
+- Requested Query: I want to watch drama film, Please suggest for me
+- Response:
+```
+{
+  "status": 200,
+  "data": {
+    "result": "\"Choices,\" an Indian romance drama, explores the consequences of a woman's affair.  \"Sense\" is a drama about a student who reevaluates his life.  \"I Want To Talk\" follows an American-settled man reconnecting with his daughter.\n"
+  }
 }
 ```

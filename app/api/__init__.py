@@ -26,11 +26,11 @@ router.include_router(
     tags=["AI Navigation"]
 )
 
-# router.include_router(
-#     rag_router,
-#     prefix="/rag",
-#     tags=["RAG"]
-# )
+router.include_router(
+    rag_router,
+    prefix="/rag",
+    tags=["RAG"]
+)
 
 router.include_router(
     create_token_router,

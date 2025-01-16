@@ -253,6 +253,7 @@ Has the type PageEnum that is an one of the following strings
 
 ## Hosted server
 - **URL:** https://awd-llm.azurewebsites.net/docs
+
 **Note:** This hosted server will remain active on Azure for 3 to 6 months, after which it will be deactivated.
 
 ## MongoDB server (contains collections that are crawled from TMDB)
